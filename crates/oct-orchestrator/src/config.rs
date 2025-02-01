@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 
 use serde::{Deserialize, Serialize};
@@ -47,6 +48,8 @@ pub(crate) struct Service {
     pub(crate) cpus: u32,
     /// Memory in MB
     pub(crate) memory: u64,
+    /// Environment variables to set in the container
+    pub(crate) env: HashMap<String, String>,
 }
 
 #[cfg(test)]
@@ -72,6 +75,11 @@ external_port = 80
 cpus = 250
 memory = 64
 
+[project.services.env]
+KEY1 = "VALUE1"
+KEY2 = """Multiline
+string"""
+
 [[project.services]]
 name = "app_2"
 image = "nginx:latest"
@@ -79,6 +87,10 @@ internal_port = 80
 external_port = 80
 cpus = 250
 memory = 64
+
+[project.services.env]
+KEY3 = "VALUE3"
+KEY4 = "VALUE4"
     "#;
 
         let mut file = tempfile::NamedTempFile::new().unwrap();
@@ -101,6 +113,10 @@ memory = 64
                             external_port: 80,
                             cpus: 250,
                             memory: 64,
+                            env: HashMap::from([
+                                ("KEY1".to_string(), "VALUE1".to_string()),
+                                ("KEY2".to_string(), "Multiline\nstring".to_string()),
+                            ]),
                         },
                         Service {
                             name: "app_2".to_string(),
@@ -109,6 +125,10 @@ memory = 64
                             external_port: 80,
                             cpus: 250,
                             memory: 64,
+                            env: HashMap::from([
+                                ("KEY3".to_string(), "VALUE3".to_string()),
+                                ("KEY4".to_string(), "VALUE4".to_string()),
+                            ]),
                         }
                     ]
                 }
