@@ -220,11 +220,18 @@ async fn main() {
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:31888")
         .await
-        .unwrap();
+        .expect("Failed to bind listener to 0.0.0.0:31888");
 
-    tracing::info!("Listening on {}", listener.local_addr().unwrap());
+    tracing::info!(
+        "Listening on {}",
+        listener
+            .local_addr()
+            .expect("Failed to get listener address")
+    );
 
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app)
+        .await
+        .expect("Failed to start server");
 }
 
 // TODO: Use parametrization and fixtures from

@@ -67,6 +67,7 @@ get_unwrap = "warn"
 rc_buffer = "warn"
 rc_mutex = "warn"
 rest_pat_in_fully_bound_structs = "warn"
+unwrap_used = "warn"
 # Nursery rules
 redundant_clone = "warn"
 debug_assert_with_mut_call = "warn"
