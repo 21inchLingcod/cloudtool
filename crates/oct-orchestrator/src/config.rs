@@ -41,6 +41,8 @@ pub(crate) struct Project {
 pub(crate) struct Service {
     /// Image to use for the container
     pub(crate) image: String,
+    /// Path to the Dockerfile
+    pub(crate) dockerfile_path: Option<String>,
     /// Internal port exposed from the container
     pub(crate) internal_port: Option<u32>,
     /// External port exposed to the public internet
@@ -138,6 +140,7 @@ depends_on = ["app_1"]
                             "app_1".to_string(),
                             Service {
                                 image: "nginx:latest".to_string(),
+                                dockerfile_path: None,
                                 internal_port: Some(80),
                                 external_port: Some(80),
                                 cpus: 250,
@@ -153,6 +156,82 @@ depends_on = ["app_1"]
                             "app_2".to_string(),
                             Service {
                                 image: "nginx:latest".to_string(),
+                                dockerfile_path: None,
+                                internal_port: None,
+                                external_port: None,
+                                cpus: 250,
+                                memory: 64,
+                                depends_on: Some(vec!("app_1".to_string())),
+                                envs: HashMap::new(),
+                            }
+                        ),
+                    ])
+                }
+            }
+        );
+    }
+
+    #[test]
+    fn test_config_new_success_with_dockerfile_path() {
+        // Arrange
+        let config_file_content = r#"
+[project]
+name = "example"
+
+[project.services.app_1]
+image = ""
+dockerfile_path = "Dockerfile"
+internal_port = 80
+external_port = 80
+cpus = 250
+memory = 64
+
+[project.services.app_1.envs]
+KEY1 = "VALUE1"
+KEY2 = """Multiline
+string"""
+
+[project.services.app_2]
+image = "nginx:latest"
+cpus = 250
+memory = 64
+depends_on = ["app_1"]
+"#;
+
+        let mut file = tempfile::NamedTempFile::new().unwrap();
+        file.write_all(config_file_content.as_bytes()).unwrap();
+
+        // Act
+        let config = Config::new(file.path().to_str()).unwrap();
+
+        // Assert
+        assert_eq!(
+            config,
+            Config {
+                project: Project {
+                    name: "example".to_string(),
+                    services: HashMap::from([
+                        (
+                            "app_1".to_string(),
+                            Service {
+                                image: "".to_string(),
+                                dockerfile_path: Some("Dockerfile".to_string()),
+                                internal_port: Some(80),
+                                external_port: Some(80),
+                                cpus: 250,
+                                memory: 64,
+                                depends_on: None,
+                                envs: HashMap::from([
+                                    ("KEY1".to_string(), "VALUE1".to_string()),
+                                    ("KEY2".to_string(), "Multiline\nstring".to_string()),
+                                ]),
+                            }
+                        ),
+                        (
+                            "app_2".to_string(),
+                            Service {
+                                image: "nginx:latest".to_string(),
+                                dockerfile_path: None,
                                 internal_port: None,
                                 external_port: None,
                                 cpus: 250,
@@ -172,6 +251,7 @@ depends_on = ["app_1"]
         // Arrange
         let service = Service {
             image: "nginx:latest".to_string(),
+            dockerfile_path: None,
             internal_port: None,
             external_port: None,
             cpus: 250,
@@ -205,6 +285,7 @@ depends_on = ["app_1"]
         // Arrange
         let service = Service {
             image: "nginx:latest".to_string(),
+            dockerfile_path: None,
             internal_port: None,
             external_port: None,
             cpus: 250,
